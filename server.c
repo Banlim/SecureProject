@@ -1,3 +1,4 @@
+#include <time.h>
 #include "common.h"
 
 
@@ -46,22 +47,33 @@ void do_server_loop(BIO *conn)
 	if(!strcmp(buf, "quit\n")){
 		fprintf(stderr, "Connection closed. \n");
 		exit(0);
+	}
 }
 
 void THREAD_CC server_thread(void *arg)
 {
 	BIO *client = (BIO *)arg;
+	time_t cur;
+	struct tm *date;
+	cur = time(NULL);
+	date = localtime(&cur);
 
 #ifndef WIN32
 	pthread_detach(pthread_self( ));
 #endif
 	fprintf(stderr, "Connection opened. \n");
+
+	FILE *file_pointer;
+	file_pointer = fopen("output.txt", "a+");
+	fprintf(file_pointer,"%d-%0d-%0d %0d:%0d\n", date->tm_year + 1900, date->tm_mon + 1, date->tm_mday, date->tm_hour, date->tm_sec);
+	fclose(file_pointer);
+
 	while(1){
 		do_server_loop(client);
 		do_send(client);
 	}
-	fprintf(stderr, "Connection closed. \n");
 
+	fprintf(stderr, "Connection closed. \n");
 	BIO_free(client);
 	ERR_remove_state(0);
 #ifdef WIN32
@@ -95,5 +107,6 @@ int main(int argc, char *argv[])
 
 	BIO_free(acc);
 	return 0;
+
 }
 
