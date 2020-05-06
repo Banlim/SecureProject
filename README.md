@@ -1,3 +1,1 @@
 # SecureProject
-
-## Hello World
